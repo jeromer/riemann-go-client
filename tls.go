@@ -5,11 +5,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/binary"
+	"io"
 	"io/ioutil"
 	"net"
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	pb "github.com/golang/protobuf/proto"
 	"github.com/riemann/riemann-go-client/proto"
 )
@@ -154,4 +156,18 @@ func (c *TlsClient) QueryIndex(q string) ([]Event, error) {
 	}
 
 	return ProtocolBuffersToEvents(response.GetEvents()), nil
+}
+
+func readMessages(r io.Reader, p []byte) error {
+	for len(p) > 0 {
+		n, err := r.Read(p)
+		spew.Dump(n, err)
+		p = p[n:]
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

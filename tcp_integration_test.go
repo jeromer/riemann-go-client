@@ -3,88 +3,52 @@
 package riemanngo
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
 
-func TestSendEventTcp(t *testing.T) {
-	c := NewTcpClient("127.0.0.1:5555", 5*time.Second)
-	err := c.Connect()
-	defer c.Close()
-	if err != nil {
-		t.Error("Error Tcp client Connect")
-	}
-	result, err := SendEvent(c, &Event{
-		Service: "LOOOl",
-		Metric:  100,
-		Tags:    []string{"nonblocking"},
-	})
-	if !*result.Ok {
-		t.Error("Error Tcp client SendEvent")
-	}
-}
+func TestTCPClient(t *testing.T) {
+	c, err := NewTCPClient(
+		"127.0.0.1:5555",
+		5*time.Second,
+		5*time.Second,
+	)
 
-func TestSendEventsTcp(t *testing.T) {
-	c := NewTcpClient("127.0.0.1:5555", 5*time.Second)
-	err := c.Connect()
-	defer c.Close()
 	if err != nil {
-		t.Error("Error Tcp client Connect")
+		t.Errorf(
+			"Connection error : %s", err,
+		)
 	}
-	events := []Event{
-		{
-			Service: "hello",
-			Metric:  100,
-			Tags:    []string{"hello"},
-		},
-		{
-			Service: "goodbye",
-			Metric:  200,
-			Tags:    []string{"goodbye"},
-		},
-	}
-	result, err := SendEvents(c, &events)
-	if !*result.Ok {
-		t.Error("Error Tcp client SendEvent")
-	}
-}
 
-func TestQueryIndex(t *testing.T) {
-	c := NewTcpClient("127.0.0.1:5555", 5*time.Second)
-	err := c.Connect()
-	defer c.Close()
+	count := int(1e5)
+
+	start := time.Now()
+
+	for i := 0; i < count; i++ {
+		i64 := int64(i)
+
+		c.Send(
+			&Event{
+				Service: fmt.Sprintf(
+					"TestTCPClient-%d", i,
+				),
+
+				MetricInt64: &i64,
+				Tags:        []string{"a", "b"},
+				TTL:         30 * time.Second,
+				State:       "ok",
+			},
+		)
+	}
+
+	err = c.Close()
 	if err != nil {
-		t.Error("Error Tcp client Connect")
+		t.Errorf("Got %s on close", err)
 	}
-	events := []Event{
-		{
-			Host:    "foobaz",
-			Service: "golang",
-			Metric:  100,
-			Tags:    []string{"hello"},
-		},
-		{
-			Host:    "foobar",
-			Service: "golang",
-			Metric:  200,
-			Tags:    []string{"goodbye"},
-		},
-	}
-	result, err := SendEvents(c, &events)
-	if !*result.Ok {
-		t.Error("Error Tcp client SendEvent")
-	}
-	queryResult, err := c.QueryIndex("(service = \"golang\")")
-	if len(queryResult) != 2 {
-		t.Error("Error Tcp client QueryIndex")
-	}
-}
 
-func TestTcpConnec(t *testing.T) {
-	c := NewTcpClient("does.not.exists:8888", 5*time.Second)
-	// should produce an error
-	err := c.Connect()
-	if err == nil {
-		t.Error("Error, should fail")
-	}
+	t.Logf(
+		"Pushed %d events in %s\n",
+		count, time.Now().Sub(start),
+	)
 }

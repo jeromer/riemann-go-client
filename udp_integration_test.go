@@ -2,6 +2,7 @@
 
 package riemanngo
 
+/*
 import (
 	"testing"
 	"time"
@@ -57,3 +58,4 @@ func TestUdpConnec(t *testing.T) {
 		t.Error("Error, should fail")
 	}
 }
+*/

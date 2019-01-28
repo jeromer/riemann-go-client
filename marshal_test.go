@@ -1,14 +1,6 @@
 package riemanngo
 
-import (
-	"math"
-	"testing"
-	"time"
-
-	pb "github.com/golang/protobuf/proto"
-	"github.com/riemann/riemann-go-client/proto"
-)
-
+/*
 func TestEventToProtocolBuffer(t *testing.T) {
 	testCases := []struct {
 		desc     string
@@ -468,3 +460,4 @@ func BenchmarkEventToProtocolBuffer(b *testing.B) {
 		}
 	}
 }
+*/
